@@ -1,0 +1,70 @@
+---
+title: "Data607-Assignment9"
+author: "Devin Teran"
+date: "3/28/2020"
+output: rmdformats::readthedown
+---
+
+## Overview
+The goal for this assignment is to connect and retrieve JSON data using the New York Times Movie Review API.  Once connected, we want to put this data into a dataframe and view the dataframe.  
+
+
+### Necessary libraries:
+```{r setup}
+library(jsonlite)
+library(stringr)
+library(rmdformats)
+library(kableExtra)
+library(dplyr)
+```
+
+## Connect to API  
+Using the NYT Movie Review API Key, which I signed up for on the NYT website, we will retrieve ALL movie review data and critic review data using the function **fromJSON**
+```{r store-api,include=FALSE}
+api_key <- 'uAV27k6TGDjnmK2RGxgd9VNCmJGb0hSU'
+```
+
+```{r get_data}
+options(stringAsFactors = FALSE)
+movie_review_url <- str_c('https://api.nytimes.com/svc/movies/v2/reviews/all.json?order=by-opening-date&api-key=',api_key)
+movie_raw <- fromJSON(movie_review_url,flatten=TRUE)
+
+critic_review_url <- str_c('https://api.nytimes.com/svc/movies/v2/critics/all.json?order=by-opening-date&api-key=',api_key)
+critic_raw <- fromJSON(critic_review_url,flatten=TRUE)
+```
+
+## View Raw Data  
+```{r view-movie-review-df}
+movie_reviews <- as.data.frame(movie_raw)
+
+kable(head(movie_reviews,2)) %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>% scroll_box(width = "125%") 
+```
+```{r view-critic-review-df}
+critic_reviews <- as.data.frame(critic_raw)
+
+kable(head(critic_reviews,2)) %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>% scroll_box(width = "125%") 
+```
+
+
+## Cleaner Data  
+Let's look at a smaller subset of columns to really get a look at the data  
+```{r clean-movie-review-df}
+movie_reviews_subset <- select(movie_reviews,results.display_title,results.mpaa_rating,results.byline,results.headline,results.summary_short,results.publication_date,results.link.type,results.link.url)
+
+colnames(movie_reviews_subset) <- c('Display.Title','MPAA.Rating','Byline','Headline','Summary.Short','Publication.Date','Link.Type','Link.URL')
+
+kable(head(movie_reviews_subset,5)) %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))  %>% scroll_box(width = "125%") 
+```
+
+```{r clean-critic-review-df}
+critic_reviews_subset <- select(critic_reviews,results.display_name,results.sort_name,results.status,results.bio,results.seo_name)
+
+colnames(critic_reviews_subset) <- c('Display.Name','Sort.Name','Status','Bio','SEO.Name')
+
+kable(head(critic_reviews_subset,5)) %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>% scroll_box(width = "125%") 
+```
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
